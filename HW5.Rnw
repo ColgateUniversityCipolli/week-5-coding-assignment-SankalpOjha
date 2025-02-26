@@ -27,6 +27,7 @@ Make sure to address any issues I noted in your code file, and ensure that your 
 runs in the directory as it is set up.
 <<size="scriptsize", message=FALSE, warning=FALSE>>=
 #load all necessary libraries
+#load all necessary libraries
 
 library(tidyverse)
 library(jsonlite)
@@ -149,6 +150,7 @@ all.data.csv <- essentia.csv|>
   select(-artist, -artist.y) |>
   
   #rename the first artist column to the correct name
+  rename(funct = "function") |>
   rename(artist = artist.x) 
   
   
@@ -157,6 +159,7 @@ all.data.csv <- essentia.csv|>
 view(song.info)
 view(LIWC.csv)
 view(all.data.csv)
+
 @
 \end{enumerate}
 \bibliography{bibliography}

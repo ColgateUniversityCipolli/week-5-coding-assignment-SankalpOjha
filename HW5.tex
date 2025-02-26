@@ -79,6 +79,7 @@ runs in the directory as it is set up.
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
 \hlcom{#load all necessary libraries}
+\hlcom{#load all necessary libraries}
 
 \hlkwd{library}\hldef{(tidyverse)}
 \hlkwd{library}\hldef{(jsonlite)}
@@ -201,6 +202,7 @@ runs in the directory as it is set up.
   \hlkwd{select}\hldef{(}\hlopt{-}\hldef{artist,} \hlopt{-}\hldef{artist.y) |>}
 
   \hlcom{#rename the first artist column to the correct name}
+  \hlkwd{rename}\hldef{(}\hlkwc{funct} \hldef{=} \hlsng{"function"}\hldef{) |>}
   \hlkwd{rename}\hldef{(}\hlkwc{artist} \hldef{= artist.x)}
 
 

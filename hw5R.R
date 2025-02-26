@@ -121,6 +121,7 @@ all.data.csv <- essentia.csv|>
   select(-artist, -artist.y) |>
   
   #rename the first artist column to the correct name
+  rename(funct = "function") |>
   rename(artist = artist.x) 
   
   
