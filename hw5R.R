@@ -6,7 +6,7 @@ library(jsonlite)
 #load the csv files provided
 essentia.csv = read_csv(paste("EssentiaOutput", "EssentiaModelOutput.csv", 
                               sep = "/"))
-liwc.csv = read_csv(paste("LIWCOutput", "LIWCOutput.csv", 
+LIWC.csv = read_csv(paste("LIWCOutput", "LIWCOutput.csv", 
                           sep = "/"))
 
 #gets all the indices of JSON files
@@ -43,11 +43,11 @@ for(i in 1:length(songnames)){
     overall.loudness = load.song.json$lowlevel$loudness_ebu128$integrated,
     spectral.energy = load.song.json$lowlevel$spectral_energy$mean,
     dissonance = load.song.json$lowlevel$dissonance$mean,
-    pitch.sailence = load.song.json$lowlevel$pitch_salience$mean,
-    tempo.bpm = load.song.json$rhythm$bpm,
-    beat.loudness = load.song.json$rhythm$beats_loudness$mean,
+    pitch.salience = load.song.json$lowlevel$pitch_salience$mean,
+    bpm = load.song.json$rhythm$bpm,
+    beats.loudness = load.song.json$rhythm$beats_loudness$mean,
     danceability = load.song.json$rhythm$danceability,
-    tuning.freq = load.song.json$tonal$tuning_frequency
+    tuning.frequency = load.song.json$tonal$tuning_frequency
   ))
 }
 
@@ -93,17 +93,25 @@ all.data.csv <- essentia.csv|>
   select("artist",
          "album",
          "track",
-         "",
-         "",
-         "",
-         "",
-         "",
-         "",
-         "",
-         "",
-         "")
+         "valence",
+         "arousal",
+         "agressive",
+         "happy",
+         "party",
+         "relaxed",
+         "sad",
+         "acoustic",
+         "electric",
+         "instrumental",
+         "timbreBright") %>%
+  
+  left_join(as_tibble(song.info), by = c("album", "track")) %>%
+  left_join(LIWC.csv, by = c("album", "track")) |>
+  select(-artist, -artist.y) |> #remove duplicated columns
+  rename(artist = artist.x) 
   
   
   
 
 view(song.info)
+view(all.data.csv)

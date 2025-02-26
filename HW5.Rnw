@@ -26,7 +26,7 @@ Specifically, rewrite your code for steps 1-4 of task 2 using \texttt{tidyverse}
 Make sure to address any issues I noted in your code file, and ensure that your code 
 runs in the directory as it is set up.
 <<size="scriptsize", message=FALSE, warning=FALSE>>=
-# Code to run here.
+
 @
 \end{enumerate}
 \bibliography{bibliography}
