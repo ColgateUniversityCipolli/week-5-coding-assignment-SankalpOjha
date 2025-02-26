@@ -4,8 +4,10 @@ library(tidyverse)
 library(jsonlite)
 
 #load the csv files provided
-essentia.model.csv = read_csv("EssentiaOutput/EssentiaModelOutput.csv")
-liwc.csv = read_csv("LIWCOutput/LIWCOutput.csv")
+essentia.csv = read_csv(paste("EssentiaOutput", "EssentiaModelOutput.csv", 
+                              sep = "/"))
+liwc.csv = read_csv(paste("LIWCOutput", "LIWCOutput.csv", 
+                          sep = "/"))
 
 #gets all the indices of JSON files
 essentia.files <- list.files(path = "EssentiaOutput")
@@ -30,7 +32,6 @@ essentia.files <- list.files(path = "EssentiaOutput")
 
 for(i in 1:length(songnames)){
   current.filename <- songnames[i]
-  #current.filename <- str_sub(current.filename, start = 0, end = -6)
   track.info <- str_split_1(current.filename, "-")
   load.song.json <- fromJSON(paste("EssentiaOutput", current.filename, 
                                    sep = "/"))
@@ -38,7 +39,7 @@ for(i in 1:length(songnames)){
   song.info <- bind_rows(song.info, tibble(
     artist = track.info[1],
     album = track.info[2],
-    track = track.info[3],
+    track = str_sub(track.info[3], start = 0, end = -6),
     overall.loudness = load.song.json$lowlevel$loudness_ebu128$integrated,
     spectral.energy = load.song.json$lowlevel$spectral_energy$mean,
     dissonance = load.song.json$lowlevel$dissonance$mean,
@@ -49,5 +50,60 @@ for(i in 1:length(songnames)){
     tuning.freq = load.song.json$tonal$tuning_frequency
   ))
 }
+
+all.data.csv <- essentia.csv|>
+  rowwise()|>
+  mutate(valence = mean(c(deam_valence, 
+                          emo_valence, 
+                          muse_valence)),
+         
+         arousal = mean(c(deam_arousal,
+                          emo_arousal,
+                          muse_arousal)),
+         
+         agressive = mean(c(eff_aggressive,
+                            nn_aggressive)),
+         
+         happy = mean(c(eff_happy,
+                        nn_happy)),
+         
+         party = mean(c(eff_party,
+                        nn_party)),
+         
+         relaxed = mean(c(eff_relax,
+                          nn_relax)),
+         
+         sad = mean(c(eff_sad,
+                      nn_sad)),
+         
+         acoustic = mean(c(eff_acoustic,
+                           nn_acoustic)),
+         
+         electric = mean(c(eff_electronic,
+                           nn_electronic)),
+         
+         instrumental = mean(c(eff_instrumental,
+                               nn_instrumental))
+         )|>
+  
+  ungroup()|>
+  
+  rename(timbreBright = eff_timbre_bright) |>
+  
+  select("artist",
+         "album",
+         "track",
+         "",
+         "",
+         "",
+         "",
+         "",
+         "",
+         "",
+         "",
+         "")
+  
+  
+  
 
 view(song.info)
