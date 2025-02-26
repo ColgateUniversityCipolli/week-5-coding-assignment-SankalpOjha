@@ -78,7 +78,137 @@ runs in the directory as it is set up.
 \begin{knitrout}\scriptsize
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
-\hlcom{# Code to run here.}
+\hlcom{#load all necessary libraries}
+
+\hlkwd{library}\hldef{(tidyverse)}
+\hlkwd{library}\hldef{(jsonlite)}
+
+\hlcom{#load the csv files provided}
+\hldef{essentia.csv} \hlkwb{=} \hlkwd{read_csv}\hldef{(}\hlkwd{paste}\hldef{(}\hlsng{"EssentiaOutput"}\hldef{,} \hlsng{"EssentiaModelOutput.csv"}\hldef{,}
+                              \hlkwc{sep} \hldef{=} \hlsng{"/"}\hldef{))}
+\hldef{LIWC.csv} \hlkwb{=} \hlkwd{read_csv}\hldef{(}\hlkwd{paste}\hldef{(}\hlsng{"LIWCOutput"}\hldef{,} \hlsng{"LIWCOutput.csv"}\hldef{,}
+                          \hlkwc{sep} \hldef{=} \hlsng{"/"}\hldef{))}
+
+\hlcom{#gets all the indices of JSON files}
+\hldef{essentia.files} \hlkwb{<-} \hlkwd{list.files}\hldef{(}\hlkwc{path} \hldef{=} \hlsng{"EssentiaOutput"}\hldef{)}
+\hldef{check.json} \hlkwb{<-} \hlkwd{str_count}\hldef{(essentia.files,} \hlkwc{pattern}\hldef{=}\hlsng{".json"}\hldef{)}
+\hldef{songnames} \hlkwb{<-} \hldef{essentia.files[}\hlkwd{which}\hldef{(check.json} \hlopt{==} \hlnum{1}\hldef{)]}
+
+\hlcom{#make an empty tibble}
+\hldef{song.info} \hlkwb{<-} \hlkwd{tibble}\hldef{(}
+  \hlkwc{artist} \hldef{=} \hlkwd{character}\hldef{(),}
+  \hlkwc{album} \hldef{=} \hlkwd{character}\hldef{(),}
+  \hlkwc{track} \hldef{=} \hlkwd{character}\hldef{(),}
+  \hlkwc{overall.loudness} \hldef{=} \hlkwd{numeric}\hldef{(),}
+  \hlkwc{spectral.energy} \hldef{=} \hlkwd{numeric}\hldef{(),}
+  \hlkwc{dissonance} \hldef{=} \hlkwd{numeric}\hldef{(),}
+  \hlkwc{pitch.salience} \hldef{=} \hlkwd{numeric}\hldef{(),}
+  \hlkwc{bpm} \hldef{=} \hlkwd{numeric}\hldef{(),}
+  \hlkwc{beats.loudness} \hldef{=} \hlkwd{numeric}\hldef{(),}
+  \hlkwc{danceability} \hldef{=} \hlkwd{numeric}\hldef{(),}
+  \hlkwc{tuning.frequency} \hldef{=} \hlkwd{numeric}\hldef{()}
+\hldef{)}
+
+\hlcom{#load all the files in the directory}
+\hldef{essentia.files} \hlkwb{<-} \hlkwd{list.files}\hldef{(}\hlkwc{path} \hldef{=} \hlsng{"EssentiaOutput"}\hldef{)}
+
+\hlcom{#gather all the data from the files in the directory}
+\hlkwa{for}\hldef{(i} \hlkwa{in} \hlnum{1}\hlopt{:}\hlkwd{length}\hldef{(songnames))\{}
+  \hldef{current.filename} \hlkwb{<-} \hldef{songnames[i]}
+  \hldef{track.info} \hlkwb{<-} \hlkwd{str_split_1}\hldef{(current.filename,} \hlsng{"-"}\hldef{)}
+  \hldef{load.song.json} \hlkwb{<-} \hlkwd{fromJSON}\hldef{(}\hlkwd{paste}\hldef{(}\hlsng{"EssentiaOutput"}\hldef{, current.filename,}
+                                   \hlkwc{sep} \hldef{=} \hlsng{"/"}\hldef{))}
+
+  \hlcom{#add to the tibble by row}
+  \hldef{song.info} \hlkwb{<-} \hlkwd{bind_rows}\hldef{(song.info,} \hlkwd{tibble}\hldef{(}
+    \hlkwc{artist} \hldef{= track.info[}\hlnum{1}\hldef{],}
+    \hlkwc{album} \hldef{= track.info[}\hlnum{2}\hldef{],}
+    \hlkwc{track} \hldef{=} \hlkwd{str_sub}\hldef{(track.info[}\hlnum{3}\hldef{],} \hlkwc{start} \hldef{=} \hlnum{0}\hldef{,} \hlkwc{end} \hldef{=} \hlopt{-}\hlnum{6}\hldef{),}
+    \hlkwc{overall.loudness} \hldef{= load.song.json}\hlopt{$}\hldef{lowlevel}\hlopt{$}\hldef{loudness_ebu128}\hlopt{$}\hldef{integrated,}
+    \hlkwc{spectral.energy} \hldef{= load.song.json}\hlopt{$}\hldef{lowlevel}\hlopt{$}\hldef{spectral_energy}\hlopt{$}\hldef{mean,}
+    \hlkwc{dissonance} \hldef{= load.song.json}\hlopt{$}\hldef{lowlevel}\hlopt{$}\hldef{dissonance}\hlopt{$}\hldef{mean,}
+    \hlkwc{pitch.salience} \hldef{= load.song.json}\hlopt{$}\hldef{lowlevel}\hlopt{$}\hldef{pitch_salience}\hlopt{$}\hldef{mean,}
+    \hlkwc{bpm} \hldef{= load.song.json}\hlopt{$}\hldef{rhythm}\hlopt{$}\hldef{bpm,}
+    \hlkwc{beats.loudness} \hldef{= load.song.json}\hlopt{$}\hldef{rhythm}\hlopt{$}\hldef{beats_loudness}\hlopt{$}\hldef{mean,}
+    \hlkwc{danceability} \hldef{= load.song.json}\hlopt{$}\hldef{rhythm}\hlopt{$}\hldef{danceability,}
+    \hlkwc{tuning.frequency} \hldef{= load.song.json}\hlopt{$}\hldef{tonal}\hlopt{$}\hldef{tuning_frequency}
+  \hldef{))}
+\hldef{\}}
+
+\hlcom{#make a new tibble which has all the mean values}
+\hldef{all.data.csv} \hlkwb{<-} \hldef{essentia.csv|>}
+  \hlkwd{rowwise}\hldef{()|>}
+  \hlkwd{mutate}\hldef{(}\hlkwc{valence} \hldef{=} \hlkwd{mean}\hldef{(}\hlkwd{c}\hldef{(deam_valence,}
+                          \hldef{emo_valence,}
+                          \hldef{muse_valence)),}
+
+         \hlkwc{arousal} \hldef{=} \hlkwd{mean}\hldef{(}\hlkwd{c}\hldef{(deam_arousal,}
+                          \hldef{emo_arousal,}
+                          \hldef{muse_arousal)),}
+
+         \hlkwc{agressive} \hldef{=} \hlkwd{mean}\hldef{(}\hlkwd{c}\hldef{(eff_aggressive,}
+                            \hldef{nn_aggressive)),}
+
+         \hlkwc{happy} \hldef{=} \hlkwd{mean}\hldef{(}\hlkwd{c}\hldef{(eff_happy,}
+                        \hldef{nn_happy)),}
+
+         \hlkwc{party} \hldef{=} \hlkwd{mean}\hldef{(}\hlkwd{c}\hldef{(eff_party,}
+                        \hldef{nn_party)),}
+
+         \hlkwc{relaxed} \hldef{=} \hlkwd{mean}\hldef{(}\hlkwd{c}\hldef{(eff_relax,}
+                          \hldef{nn_relax)),}
+
+         \hlkwc{sad} \hldef{=} \hlkwd{mean}\hldef{(}\hlkwd{c}\hldef{(eff_sad,}
+                      \hldef{nn_sad)),}
+
+         \hlkwc{acoustic} \hldef{=} \hlkwd{mean}\hldef{(}\hlkwd{c}\hldef{(eff_acoustic,}
+                           \hldef{nn_acoustic)),}
+
+         \hlkwc{electric} \hldef{=} \hlkwd{mean}\hldef{(}\hlkwd{c}\hldef{(eff_electronic,}
+                           \hldef{nn_electronic)),}
+
+         \hlkwc{instrumental} \hldef{=} \hlkwd{mean}\hldef{(}\hlkwd{c}\hldef{(eff_instrumental,}
+                               \hldef{nn_instrumental))}
+         \hldef{)|>}
+
+  \hlkwd{ungroup}\hldef{()|>}
+
+  \hlkwd{rename}\hldef{(}\hlkwc{timbreBright} \hldef{= eff_timbre_bright) |>}
+
+  \hlcom{#select all the relevant columns for the final tibble}
+  \hlkwd{select}\hldef{(}\hlsng{"artist"}\hldef{,}
+         \hlsng{"album"}\hldef{,}
+         \hlsng{"track"}\hldef{,}
+         \hlsng{"valence"}\hldef{,}
+         \hlsng{"arousal"}\hldef{,}
+         \hlsng{"agressive"}\hldef{,}
+         \hlsng{"happy"}\hldef{,}
+         \hlsng{"party"}\hldef{,}
+         \hlsng{"relaxed"}\hldef{,}
+         \hlsng{"sad"}\hldef{,}
+         \hlsng{"acoustic"}\hldef{,}
+         \hlsng{"electric"}\hldef{,}
+         \hlsng{"instrumental"}\hldef{,}
+         \hlsng{"timbreBright"}\hldef{)} \hlopt{%>%}
+
+  \hlcom{#join the orignal tibble with the tibble we made}
+  \hlkwd{left_join}\hldef{(}\hlkwd{as_tibble}\hldef{(song.info),} \hlkwc{by} \hldef{=} \hlkwd{c}\hldef{(}\hlsng{"album"}\hldef{,} \hlsng{"track"}\hldef{))} \hlopt{%>%}
+
+  \hlcom{#join the merged tibble with the LIWC csv}
+  \hlkwd{left_join}\hldef{(LIWC.csv,} \hlkwc{by} \hldef{=} \hlkwd{c}\hldef{(}\hlsng{"album"}\hldef{,} \hlsng{"track"}\hldef{)) |>}
+
+  \hlcom{#remove the extra artist columns}
+  \hlkwd{select}\hldef{(}\hlopt{-}\hldef{artist,} \hlopt{-}\hldef{artist.y) |>}
+
+  \hlcom{#rename the first artist column to the correct name}
+  \hlkwd{rename}\hldef{(}\hlkwc{artist} \hldef{= artist.x)}
+
+
+
+\hlcom{#view all out tibbles}
+\hlkwd{view}\hldef{(song.info)}
+\hlkwd{view}\hldef{(LIWC.csv)}
+\hlkwd{view}\hldef{(all.data.csv)}
 \end{alltt}
 \end{kframe}
 \end{knitrout}

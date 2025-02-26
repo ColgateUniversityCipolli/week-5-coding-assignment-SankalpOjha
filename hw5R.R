@@ -14,6 +14,7 @@ essentia.files <- list.files(path = "EssentiaOutput")
 check.json <- str_count(essentia.files, pattern=".json")
 songnames <- essentia.files[which(check.json == 1)]
 
+#make an empty tibble
 song.info <- tibble(
   artist = character(),
   album = character(),
@@ -28,14 +29,17 @@ song.info <- tibble(
   tuning.frequency = numeric()
 )
 
+#load all the files in the directory
 essentia.files <- list.files(path = "EssentiaOutput")
 
+#gather all the data from the files in the directory
 for(i in 1:length(songnames)){
   current.filename <- songnames[i]
   track.info <- str_split_1(current.filename, "-")
   load.song.json <- fromJSON(paste("EssentiaOutput", current.filename, 
                                    sep = "/"))
   
+  #add to the tibble by row
   song.info <- bind_rows(song.info, tibble(
     artist = track.info[1],
     album = track.info[2],
@@ -51,6 +55,7 @@ for(i in 1:length(songnames)){
   ))
 }
 
+#make a new tibble which has all the mean values
 all.data.csv <- essentia.csv|>
   rowwise()|>
   mutate(valence = mean(c(deam_valence, 
@@ -90,6 +95,7 @@ all.data.csv <- essentia.csv|>
   
   rename(timbreBright = eff_timbre_bright) |>
   
+  #select all the relevant columns for the final tibble
   select("artist",
          "album",
          "track",
@@ -105,13 +111,21 @@ all.data.csv <- essentia.csv|>
          "instrumental",
          "timbreBright") %>%
   
+  #join the orignal tibble with the tibble we made
   left_join(as_tibble(song.info), by = c("album", "track")) %>%
+  
+  #join the merged tibble with the LIWC csv
   left_join(LIWC.csv, by = c("album", "track")) |>
-  select(-artist, -artist.y) |> #remove duplicated columns
+  
+  #remove the extra artist columns
+  select(-artist, -artist.y) |>
+  
+  #rename the first artist column to the correct name
   rename(artist = artist.x) 
   
   
   
-
+#view all out tibbles
 view(song.info)
+view(LIWC.csv)
 view(all.data.csv)
